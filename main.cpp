@@ -107,7 +107,7 @@ int validate_port(const char* port)
 
 
 
-int set_filter(pcap_t* handle, filter& options)
+int set_filter(pcap_t* handle, const filter& options)
 {
 	bpf_program prog_code;
 

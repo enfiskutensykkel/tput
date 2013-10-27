@@ -23,7 +23,7 @@ struct filter
 	{
 	};
 
-	string str()
+	string str() const
 	{
 		// Add protocol to filter
 		string filter("tcp");
