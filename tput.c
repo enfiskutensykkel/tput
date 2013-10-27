@@ -289,11 +289,11 @@ int main(int argc, char** argv)
 	}
 
 	pcap_t* handle = NULL;
-	if ((handle = pcap_open_offline(argv[optind], NULL)) == NULL)
+	char errbuf[PCAP_ERRBUF_SIZE];
+	if ((handle = pcap_open_offline(argv[optind], errbuf)) == NULL)
 	{
-		fprintf(stderr, "Error: Couldn't open packet trace file\n");
-		status = 1;
-		goto give_usage;
+		fprintf(stderr, "Error: %s\n", errbuf);
+		exit(1);
 	}
 	fprintf(stderr, "Analyzing trace file: %s\n", argv[optind]);
 
