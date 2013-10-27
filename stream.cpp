@@ -34,3 +34,83 @@ vector<uint64_t>& lookup_stream(uint32_t src, uint32_t dst, uint16_t sport, uint
 
 	return samples;
 }
+
+
+
+bool stream::operator<(const stream& rhs) const
+{
+	if (src < rhs.src)
+		return true;
+	if (src > rhs.src)
+		return false;
+
+	if (dst < rhs.dst)
+		return true;
+	if (dst > rhs.dst)
+		return false;
+
+	if (sport < rhs.sport)
+		return true;
+	if (sport > rhs.sport)
+		return false;
+
+	if (dport < rhs.dport)
+		return true;
+	if (dport > rhs.dport)
+		return false;
+
+	return false;
+}
+
+
+
+stream::stream(const stream& rhs)
+{
+	*this = rhs;
+}
+
+
+
+stream& stream::operator=(const stream& rhs)
+{
+	this->src = rhs.src;
+	this->dst = rhs.dst;
+	this->sport = rhs.sport;
+	this->dport = rhs.dport;
+
+	return *this;
+}
+
+
+
+string stream::str() const
+{
+
+	union 
+	{
+		uint32_t addr;
+		uint8_t str[4];
+	} info;
+
+	ostringstream connstr;
+
+	info.addr = ntohl(src);
+	connstr << ((int) info.str[0]);
+	connstr << ((int) info.str[1]);
+	connstr << ((int) info.str[2]);
+	connstr << ((int) info.str[3]);
+	connstr << ":";
+	connstr << ntohs(sport);
+
+	connstr << "=>";
+
+	info.addr = ntohl(dst);
+	connstr << ((int) info.str[0]);
+	connstr << ((int) info.str[1]);
+	connstr << ((int) info.str[2]);
+	connstr << ((int) info.str[3]);
+	connstr << ":";
+	connstr << ntohs(dport);
+
+	return connstr.str();
+}

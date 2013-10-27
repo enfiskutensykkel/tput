@@ -32,7 +32,7 @@ uint64_t usecs(struct timeval& t)
 
 
 
-void calculate_throughput(pcap_t* handle, unsigned time_slice)
+uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 {
 	pcap_pkthdr* hdr;
 	const u_char* pkt;
@@ -70,6 +70,8 @@ void calculate_throughput(pcap_t* handle, unsigned time_slice)
 		vector<uint64_t>& stream = lookup_stream(src, dst, sport, dport, slice);
 		stream[slice] += hdr->len;
 	}
+
+	return slice;
 }
 
 
@@ -135,6 +137,7 @@ int main(int argc, char** argv)
 	pcap_t* handle = NULL;
 
 	int status = 0;
+	uint64_t num_slices = 0;
 
 	// Parse command line options
 	int opt;
@@ -281,19 +284,35 @@ int main(int argc, char** argv)
 		return 3;
 	}
 
-	calculate_throughput(handle, time_slice);
+	num_slices = calculate_throughput(handle, time_slice);
 
-	// Write results to CSV file
-	for (map<stream, vector<uint64_t> >::iterator it = connection_map.begin(); it != connection_map.end(); it++)
+	if (!caught_signal)
 	{
-		for (vector<uint64_t>::iterator i = it->second.begin(); i != it->second.end(); i++)
-		{
-			if (i == it->second.begin())
-				fprintf(output_file, "%lu", *i);
-			else
-				fprintf(output_file, ", %lu", *i);
-		}
+		// Write header row
+		fprintf(output_file, "%d", 1);
+		for (uint64_t i = 2; i <= num_slices; ++i)
+			fprintf(output_file, ", %lu", i);
 		fprintf(output_file, "\n");
+
+		// Write results to CSV file
+		for (map<stream, vector<uint64_t> >::iterator stream = connection_map.begin(); stream != connection_map.end(); stream++)
+		{
+			
+			fprintf(output_file, "%s", stream->first.str().c_str());
+
+			uint64_t i, n;
+			for (i = 1, n = stream->second.size(); i < n; ++i)
+			{
+				fprintf(output_file, ", %lu", stream->second[i]);
+			}
+
+			while (n++ < num_slices)
+			{
+				fprintf(output_file, ", 0");
+			}
+
+			fprintf(output_file, "\n");
+		}
 	}
 
 	// Clean up and exit

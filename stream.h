@@ -4,54 +4,29 @@
 #include <tr1/cstdint>
 #include <vector>
 #include <map>
+#include <arpa/inet.h>
+#include <string>
+#include <sstream>
+
+using std::string;
+using std::ostringstream;
+
 
 /* A connection key */
 struct stream
 {
-	bool operator<(const stream& rhs) const
-	{
-		if (src < rhs.src)
-			return true;
-		if (src > rhs.src)
-			return false;
-
-		if (dst < rhs.dst)
-			return true;
-		if (dst > rhs.dst)
-			return false;
-
-		if (sport < rhs.sport)
-			return true;
-		if (sport > rhs.sport)
-			return false;
-
-		if (dport < rhs.dport)
-			return true;
-		if (dport > rhs.dport)
-			return false;
-
-		return false;
-	};
+	bool operator<(const stream& rhs) const;
 
 	stream(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport)
 		: src( src ), dst( dst ), sport( sport ), dport( dport )
 	{
 	};
 
-	stream(const stream& rhs)
-	{
-		*this = rhs;
-	};
+	stream(const stream& rhs);
 
-	stream& operator=(const stream& rhs)
-	{
-		this->src = rhs.src;
-		this->dst = rhs.dst;
-		this->sport = rhs.sport;
-		this->dport = rhs.dport;
+	stream& operator=(const stream& rhs);
 
-		return *this;
-	};
+	string str() const;
 
 	uint32_t src;
 	uint32_t dst;
