@@ -185,7 +185,7 @@ int main(int argc, char** argv)
 					goto give_usage;
 				}
 
-				options.dst_port_last = optarg;
+				options.dst_port_first = optarg;
 				break;
 
 			case 'P':
