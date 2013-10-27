@@ -2,7 +2,7 @@ CC=$(if $(shell which colorgcc),colorgcc,gcc)
 LD=gcc
 CFLAGS=-O3 -Wall -Wextra -pedantic
 
-SRC=main.cpp stream.cpp
+SRC=main.cpp stream.cpp filter.cpp
 OBJ=$(SRC:%.cpp=%.o)
 
 .PHONY: tput all clean

@@ -23,43 +23,9 @@ struct filter
 	{
 	};
 
-	string str() const
-	{
-		// Add protocol to filter
-		string filter("tcp");
-
-		// Add source host to filter
-		if (src_addr)
-			filter += " and src host " + string(src_addr);
-
-		// Add destination host filter
-		if (dst_addr)
-			filter += " and dst host " + string(dst_addr);
-
-		// Add source ports to filter
-		if (src_port_first)
-		{
-			if (src_port_last)
-			{
-				filter += " and src portrange " + string(src_port_first) + "-" + string(src_port_last);
-			}
-			else
-				filter += " and src port " + string(src_port_first);
-		}
-
-		// Add destination ports to filter
-		if (dst_port_first)
-		{
-			if (dst_port_last)
-			{
-				filter += " and dst portrange " + string(dst_port_first) + "-" + string(dst_port_last);
-			}
-			else
-				filter += " and dst port " + string(dst_port_first);
-		}
-
-		return filter;
-	};
+	std::string str() const;
+	static bool validate_port(const std::string& port);
+	static bool validate_host(const std::string& host);
 };
 
 #endif

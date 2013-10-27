@@ -19,8 +19,15 @@ using std::vector;
 static int caught_signal = 0;
 
 
-static inline
-uint64_t usecs(struct timeval& t)
+
+static void signal_handler(int signal)
+{
+	caught_signal = signal;
+}
+
+
+
+static inline uint64_t usecs(struct timeval& t)
 {
 	static long first_second = -1;
 
@@ -76,37 +83,6 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 
 
 
-static
-void signal_handler(int signal)
-{
-	caught_signal = signal;
-}
-
-
-
-static inline
-int validate_host(const char* host)
-{
-	// TODO: Implement this
-	return 0;
-}
-
-
-
-static inline
-int validate_port(const char* port)
-{
-	char* str = NULL;
-	if (strtoul(port, &str, 0) > 0xffff || str == NULL || *str != '\0')
-	{
-		return -1;
-	}
-
-	return 0;
-}
-
-
-
 int set_filter(pcap_t* handle, const filter& options)
 {
 	bpf_program prog_code;
@@ -158,7 +134,7 @@ int main(int argc, char** argv)
 				goto give_usage;
 
 			case 's':
-				if (validate_host(optarg) < 0)
+				if (!filter::validate_host(optarg))
 				{
 					fprintf(stderr, "Error: Option -s requires a valid hostname\n");
 					status = 's';
@@ -169,7 +145,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'q':
-				if (validate_port(optarg) < 0)
+				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -q requires a valid port number\n");
 					status = 'q';
@@ -180,7 +156,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'Q':
-				if (validate_port(optarg) < 0)
+				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -Q requires a valid port number\n");
 					status = 'Q';
@@ -191,7 +167,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'r':
-				if (validate_host(optarg) < 0)
+				if (!filter::validate_host(optarg))
 				{
 					fprintf(stderr, "Error: Option -r requires a valid hostname\n");
 					status = 'r';
@@ -202,7 +178,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'p':
-				if (validate_port(optarg) < 0)
+				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -p requires a valid port number\n");
 					status = 'p';
@@ -213,7 +189,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'P':
-				if (validate_port(optarg) < 0)
+				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -P requires a valid port number\n");
 					status = 'P';
