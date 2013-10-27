@@ -1,6 +1,6 @@
 CC=$(if $(shell which colorgcc),colorgcc,gcc)
 LD=gcc
-CFLAGS=-g -Wall -Wextra -pedantic
+CFLAGS=-O3 -Wall -Wextra -pedantic
 
 SRC=main.cpp stream.cpp
 OBJ=$(SRC:%.cpp=%.o)
