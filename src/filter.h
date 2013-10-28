@@ -17,9 +17,12 @@ struct filter
 	const char* dst_port_first;
 	const char* dst_port_last;
 
+	bool include_reverse;
+
 	filter()
 		: src_addr(NULL), src_port_first(NULL), src_port_last(NULL),
-		dst_addr(NULL), dst_port_first(NULL), dst_port_last(NULL)
+		dst_addr(NULL), dst_port_first(NULL), dst_port_last(NULL),
+		include_reverse( false )
 	{
 	};
 

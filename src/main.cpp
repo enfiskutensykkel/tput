@@ -101,6 +101,7 @@ int main(int argc, char** argv)
 {
 	filter options;
 	unsigned time_slice = DEFAULT_TIME_SLICE;
+	char* output_filename = NULL;
 	FILE* output_file = stdout;
 	char errbuf[PCAP_ERRBUF_SIZE];
 	pcap_t* handle = NULL;
@@ -110,7 +111,7 @@ int main(int argc, char** argv)
 
 	// Parse command line options
 	int opt;
-	while ((opt = getopt(argc, argv, ":hs:q:Q:r:p:P:t:o:")) != -1)
+	while ((opt = getopt(argc, argv, ":hs:q:Q:r:p:P:t:o:a")) != -1)
 	{
 		switch (opt)
 		{
@@ -210,12 +211,11 @@ int main(int argc, char** argv)
 				break;
 
 			case 'o':
-				if ((output_file = fopen(optarg, "w")) == NULL)
-				{
-					fprintf(stderr, "Error: Couldn't open output file\n");
-					status = 'o';
-					goto give_usage;
-				}
+				output_filename = optarg;
+				break;
+
+			case 'a':
+				options.include_reverse = true;
 				break;
 		}
 	}
@@ -245,6 +245,16 @@ int main(int argc, char** argv)
 	}
 	
 	fprintf(stderr, "Using filter: %s\n", options.str().c_str());
+
+	// Open output file
+	if (output_filename != NULL)
+	{
+		if ((output_file = fopen(output_filename, "w")) == NULL)
+		{
+			fprintf(stderr, "Error: Couldn't open output file\n");
+			return 'o';
+		}
+	}
 
 	// Calculate throughput per stream
 	if (signal(SIGINT, &signal_handler) == SIG_ERR)
@@ -286,7 +296,10 @@ int main(int argc, char** argv)
 
 	// Clean up and exit
 	pcap_close(handle);
-	fclose(output_file);
+
+	if (output_filename != NULL)
+		fclose(output_file);
+
 	return 0;
 
 
@@ -303,6 +316,7 @@ give_usage:
 			" -P\tDestination end port\n"
 			" -t\tAggregate results over a number of milliseconds (defaults to %d)\n"
 			" -o\tWrite results to file instead of stdout\n"
+			" -a\tInclude the reverse streams\n"
 			"\n", argv[0], DEFAULT_TIME_SLICE);
 
 	return status;
