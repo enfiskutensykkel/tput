@@ -16,6 +16,6 @@ all: tput
 clean:
 	-$(RM) $(OBJ) tput
 
-build/%.o: %.cpp
+build/%.o: src/%.cpp
 	@mkdir -p build
 	$(CC) -std=gnu++98 -DDEFAULT_TIME_SLICE=30000 -DETHERNET_FRAME_LEN=14 -o $@ -c $(CFLAGS) $<

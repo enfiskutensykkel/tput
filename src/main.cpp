@@ -16,6 +16,7 @@ using std::map;
 using std::vector;
 
 
+
 static int caught_signal = 0;
 
 
@@ -27,10 +28,11 @@ static void signal_handler(int signal)
 
 
 
-static inline uint64_t usecs(struct timeval& t)
-{
-	return t.tv_sec * 1000000 + t.tv_usec;
-}
+#define usecs(t) (((uint64_t) t.tv_sec) * 1000000 + ((uint64_t) t.tv_usec))
+//static inline uint64_t usecs(struct timeval& t)
+//{
+//	return t.tv_sec * 1000000 + t.tv_usec;
+//}
 
 
 
@@ -38,6 +40,8 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 {
 	pcap_pkthdr* hdr;
 	const u_char* pkt;
+
+	const uint64_t t_slice = time_slice * 1000;
 
 	uint64_t first = 0;
 	uint64_t slice = 0;
@@ -50,7 +54,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 	while (!caught_signal && pcap_next_ex(handle, &hdr, &pkt) == 1)
 	{
 		next = usecs(hdr->ts);
-		if (next >= (first + time_slice * 1000))
+		if (next >= (first + t_slice))
 		{
 			++slice;
 			first = next;
