@@ -4,9 +4,7 @@
 #include <tr1/cstdint>
 #include <vector>
 #include <map>
-#include <arpa/inet.h>
 #include <string>
-#include <sstream>
 
 using std::string;
 using std::ostringstream;
@@ -39,6 +37,6 @@ struct stream
 extern std::map<stream, std::vector<uint64_t> > connection_map;
 
 /* Get a connection */
-std::vector<uint64_t>& lookup_stream(uint32_t src_addr, uint32_t dst_addr, uint16_t src_port, uint16_t dst_port, uint64_t slices);
+std::vector<uint64_t>& lookup_stream_samples(uint32_t src_addr, uint32_t dst_addr, uint16_t src_port, uint16_t dst_port, uint64_t expected_samples);
 
 #endif

@@ -29,12 +29,7 @@ static void signal_handler(int signal)
 
 static inline uint64_t usecs(struct timeval& t)
 {
-	static long first_second = -1;
-
-	if (first_second == -1)
-		first_second = t.tv_sec;
-
-	return (t.tv_sec - first_second) * 1000000 + t.tv_usec;
+	return t.tv_sec * 1000000 + t.tv_usec;
 }
 
 
@@ -55,18 +50,12 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 	while (!caught_signal && pcap_next_ex(handle, &hdr, &pkt) == 1)
 	{
 		next = usecs(hdr->ts);
-		if (next >= first + time_slice)
+		if (next >= (first + time_slice * 1000))
 		{
 			++slice;
 			first = next;
-
-			for (map<stream, vector<uint64_t> >::iterator i = connection_map.begin(); i != connection_map.end(); i++)
-			{
-				i->second.push_back(0);
-			}
 		}
 
-		
 		tcp_off = (*((uint8_t*) pkt + ETHERNET_FRAME_LEN) & 0x0f) * 4; // IP header size (= offset to IP payload)
 		src = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 12)); // IP source address
 		dst = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 16)); // IP destination address
@@ -74,11 +63,11 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 		sport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off)); // TCP source port
 		dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
 
-		vector<uint64_t>& stream = lookup_stream(src, dst, sport, dport, slice);
-		stream[slice] += hdr->len;
+		vector<uint64_t>& samples = lookup_stream_samples(src, dst, sport, dport, slice);
+		samples.at(slice) += hdr->len;
 	}
 
-	return slice;
+	return slice + 1;
 }
 
 
@@ -265,27 +254,31 @@ int main(int argc, char** argv)
 	if (!caught_signal)
 	{
 		// Write header row
-		fprintf(output_file, "%d", 1);
-		for (uint64_t i = 2; i <= num_slices; ++i)
-			fprintf(output_file, ", %lu", i);
+		fprintf(output_file, "%48c%9d", ' ', 1);
+		for (uint64_t i = 2; i < num_slices; ++i)
+			fprintf(output_file, ", %9lu", i);
 		fprintf(output_file, "\n");
 
 		// Write results to CSV file
 		for (map<stream, vector<uint64_t> >::iterator stream = connection_map.begin(); stream != connection_map.end(); stream++)
 		{
-			
-			fprintf(output_file, "%s", stream->first.str().c_str());
+			fprintf(output_file, "%46s", stream->first.str().c_str());
 
 			uint64_t i, n;
 			for (i = 1, n = stream->second.size(); i < n; ++i)
 			{
-				fprintf(output_file, ", %lu", stream->second[i]);
+				fprintf(output_file, ", %9lu", stream->second[i]);
+			}
+
+			if (n != num_slices)
+			{
+				fprintf(stderr, "Warning: stream %s has %lu samples, but there should be %lu\n", stream->first.str().c_str(), n, num_slices);
 			}
 
 			while (n++ < num_slices)
-			{
-				fprintf(output_file, ", 0");
-			}
+				fprintf(output_file, ", %9d", 0);
+			
+
 
 			fprintf(output_file, "\n");
 		}
