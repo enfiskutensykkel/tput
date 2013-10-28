@@ -103,28 +103,34 @@ int main(int argc, char** argv)
 	char errbuf[PCAP_ERRBUF_SIZE];
 	pcap_t* handle = NULL;
 
+	bool packet_count = false;
+
 	int status = 0;
 	uint64_t num_slices = 0;
 
 	// Parse command line options
 	int opt;
-	while ((opt = getopt(argc, argv, ":hs:q:Q:r:p:P:t:o:a")) != -1)
+	while ((opt = getopt(argc, argv, ":hs:q:Q:r:p:P:t:o:ac")) != -1)
 	{
 		switch (opt)
 		{
 			case '?':
+				// Unknown option
 				fprintf(stderr, "Warning: Unknown option -%c\n", optopt);
 				break;
 
 			case ':':
+				// Missing argument
 				fprintf(stderr, "Error: Option -%c requires a parameter\n", optopt);
 				status = ':';
 				goto give_usage;
 
 			case 'h':
+				// Show help and quit
 				goto give_usage;
 
 			case 's':
+				// Filter on source IP address
 				if (!filter::validate_host(optarg))
 				{
 					fprintf(stderr, "Error: Option -s requires a valid hostname\n");
@@ -136,6 +142,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'q':
+				// Filter on source port
 				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -q requires a valid port number\n");
@@ -147,6 +154,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'Q':
+				// Last port in source port range
 				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -Q requires a valid port number\n");
@@ -158,6 +166,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'r':
+				// Filter on receiver IP address
 				if (!filter::validate_host(optarg))
 				{
 					fprintf(stderr, "Error: Option -r requires a valid hostname\n");
@@ -169,6 +178,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'p':
+				// Filter on destination port
 				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -p requires a valid port number\n");
@@ -180,6 +190,7 @@ int main(int argc, char** argv)
 				break;
 
 			case 'P':
+				// Last port in destination port range
 				if (!filter::validate_port(optarg))
 				{
 					fprintf(stderr, "Error: Option -P requires a valid port number\n");
@@ -192,6 +203,7 @@ int main(int argc, char** argv)
 
 			case 't':
 				{
+					// Aggregate over time slice
 					char* str = NULL;
 					time_slice = strtoul(optarg, &str, 10);
 					if (time_slice < 1 || str == NULL || *str != '\0')
@@ -208,12 +220,20 @@ int main(int argc, char** argv)
 				break;
 
 			case 'o':
+				// Write to file instead of stdout
 				output_filename = optarg;
 				break;
 
 			case 'a':
+				// Include reverse filter (to count ACKs as well)
 				options.include_reverse = true;
 				break;
+
+			case 'c':
+				// Show packet count instead of byte count
+				packet_count = true;
+				break;
+
 		}
 	}
 
@@ -279,12 +299,16 @@ int main(int argc, char** argv)
 
 			uint64_t i, n;
 			for (i = 1, n = stream->second.size(); i < n; ++i)
-				fprintf(output_file, ", %9lu", stream->second[i].total_bytes);
-				//fprintf(output_file, ", %9lu", stream->second[i].total_pkts);
+			{
+				if (packet_count)
+					fprintf(output_file, ", %9lu", stream->second[i].total_pkts);
+				else
+					fprintf(output_file, ", %9lu", stream->second[i].total_bytes);
+			}
 
 			if (n != num_slices) 
 			{
-				fprintf(stderr, "Warning: stream %s has %lu slices, but there should be %lu\n", stream->first.str().c_str(), n, num_slices);
+				fprintf(stderr, "Warning: stream %s has %lu slices, but there should be %lu, padding the remaining\n", stream->first.str().c_str(), n, num_slices);
 
 				while (n++ < num_slices)
 					fprintf(output_file, ", %9d", 0);
@@ -307,16 +331,17 @@ give_usage:
 	fprintf(stderr,
 			"Usage: %s [-h] [options] trace-file\n"
 			"Options:\n"
-			" -h\tPrint this help and quit\n"
-			" -s\tSource IP address\n"
-			" -q\tSource start port\n"
-			" -Q\tSource end port\n"
-			" -r\tDestination IP address\n"
-			" -p\tDestination start port\n"
-			" -P\tDestination end port\n"
-			" -t\tAggregate results over a number of milliseconds (defaults to %d)\n"
-			" -o\tWrite results to file instead of stdout\n"
-			" -a\tInclude the reverse streams\n"
+			"  -h\tPrint this help and quit\n"
+			"  -s\tSource IP address\n"
+			"  -q\tSource start port\n"
+			"  -Q\tSource end port\n"
+			"  -r\tDestination IP address\n"
+			"  -p\tDestination start port\n"
+			"  -P\tDestination end port\n"
+			"  -t\tAggregate throughput samples over a number of milliseconds (defaults to %d)\n"
+			"  -o\tWrite throughput samples to file instead of stdout\n"
+			"  -a\tInclude the reverse streams\n"
+			"  -c\tShow TCP segment count instead of byte count\n"
 			"\n", argv[0], DEFAULT_TIME_SLICE);
 
 	return status;
