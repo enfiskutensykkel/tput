@@ -41,7 +41,8 @@ vector<slice>& lookup_stream_slices(uint32_t src, uint32_t dst, uint16_t sport, 
 
 	while (count <= curr_slice_idx)
 	{
-		slices.push_back(slice(0, 0, 0));
+		//slices.push_back(slice(0, 0, 0));
+		slices.push_back(slice(0, 0));
 		++count;
 	}
 

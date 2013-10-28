@@ -38,15 +38,15 @@ struct slice
 {
 	uint64_t total_bytes;		// total byte count (including headers)
 	uint64_t total_pkts;		// total TCP segment count
-	uint64_t num_payload_pkts;	// number of TCP segments with payload
+	//uint64_t num_payload_pkts;	// number of TCP segments with payload
 
 	slice()
-		: total_bytes(0), total_pkts(0), num_payload_pkts(0)
+		: total_bytes(0), total_pkts(0)//, num_payload_pkts(0)
 	{
 	};
 
-	slice(uint64_t bytes, uint64_t pkts, uint64_t payload_pkts)
-		: total_bytes(bytes), total_pkts(pkts), num_payload_pkts(payload_pkts)
+	slice(uint64_t bytes, uint64_t pkts) //, uint64_t payload_pkts)
+		: total_bytes(bytes), total_pkts(pkts)//, num_payload_pkts(payload_pkts)
 	{
 	};
 };
