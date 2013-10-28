@@ -9,41 +9,39 @@ using std::map;
 using std::vector;
 
 
-typedef map< stream, vector<uint64_t> > mtype;
-
 
 /* A map over all the connections */
-mtype connection_map;
+maptype connection_map;
 
 
 /* Helper function to find a connection or create it if it doesn't exist */
 static inline
-vector<uint64_t>& lookup_stream(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport)
+vector<slice>& lookup_stream(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport)
 {
 	stream key(src, dst, sport, dport);
-	mtype::iterator lower_bound = connection_map.lower_bound(key);
+	maptype::iterator lower_bound = connection_map.lower_bound(key);
 
 	if (lower_bound != connection_map.end() && !(connection_map.key_comp()(key, lower_bound->first)))
 	{
 		return lower_bound->second;
 	}
 
-	vector<uint64_t> nothing;
-	mtype::iterator elem = connection_map.insert(lower_bound, mtype::value_type(key, nothing));
+	vector<slice> empty;
+	maptype::iterator elem = connection_map.insert(lower_bound, maptype::value_type(key, empty));
 	return elem->second;
 }
 
 
 
-vector<uint64_t>& lookup_stream_slices(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport, uint64_t curr_slice_idx)
+vector<slice>& lookup_stream_slices(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport, uint64_t curr_slice_idx)
 {
-	vector<uint64_t>& slices = lookup_stream(src, dst, sport, dport);
+	vector<slice>& slices = lookup_stream(src, dst, sport, dport);
 
 	uint64_t count = slices.size();
 
 	while (count <= curr_slice_idx)
 	{
-		slices.push_back(0);
+		slices.push_back(slice(0, 0, 0));
 		++count;
 	}
 

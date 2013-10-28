@@ -44,7 +44,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 	const uint64_t t_slice = slice_interval * 1000;
 
 	uint64_t first = 0;
-	uint64_t slice = 0;
+	uint64_t slice_idx = 0;
 	uint64_t next;
 
 	uint32_t tcp_off;
@@ -56,7 +56,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 		next = usecs(hdr->ts);
 		if (next >= (first + t_slice))
 		{
-			++slice;
+			++slice_idx;
 			first = next;
 		}
 
@@ -67,11 +67,12 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 		sport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off)); // TCP source port
 		dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
 
-		vector<uint64_t>& slices = lookup_stream_slices(src, dst, sport, dport, slice);
-		slices.at(slice) += hdr->len;
+		vector<slice>& slices = lookup_stream_slices(src, dst, sport, dport, slice_idx);
+		slices.at(slice_idx).total_bytes += hdr->len;
+		slices.at(slice_idx).total_pkts += 1;
 	}
 
-	return slice + 1;
+	return slice_idx + 1;
 }
 
 
@@ -276,13 +277,14 @@ int main(int argc, char** argv)
 		fprintf(output_file, "\n");
 
 		// Write results to CSV file
-		for (map<stream, vector<uint64_t> >::iterator stream = connection_map.begin(); stream != connection_map.end(); stream++)
+		for (maptype::iterator stream = connection_map.begin(); stream != connection_map.end(); stream++)
 		{
 			fprintf(output_file, "%46s", stream->first.str().c_str());
 
 			uint64_t i, n;
 			for (i = 1, n = stream->second.size(); i < n; ++i)
-				fprintf(output_file, ", %9lu", stream->second[i]);
+				fprintf(output_file, ", %9lu", stream->second[i].total_bytes);
+				//fprintf(output_file, ", %9lu", stream->second[i].total_pkts);
 
 			if (n != num_slices) 
 			{
