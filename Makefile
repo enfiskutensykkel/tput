@@ -2,8 +2,9 @@ CC=$(if $(shell which colorgcc),colorgcc,gcc)
 LD=gcc
 CFLAGS=-O3 -Wall -Wextra -pedantic
 
-SRC=main.cpp stream.cpp filter.cpp
-OBJ=$(SRC:%.cpp=%.o)
+HDR=src/stream.h src/filter.h
+SRC=src/main.cpp src/stream.cpp src/filter.cpp
+OBJ=$(SRC:src/%.cpp=build/%.o)
 
 .PHONY: tput all clean
 
@@ -15,5 +16,6 @@ all: tput
 clean:
 	-$(RM) $(OBJ) tput
 
-%.o: %.cpp
+build/%.o: %.cpp
+	@mkdir -p build
 	$(CC) -std=gnu++98 -DDEFAULT_TIME_SLICE=30000 -DETHERNET_FRAME_LEN=14 -o $@ -c $(CFLAGS) $<
