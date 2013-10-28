@@ -266,20 +266,16 @@ int main(int argc, char** argv)
 
 			uint64_t i, n;
 			for (i = 1, n = stream->second.size(); i < n; ++i)
-			{
 				fprintf(output_file, ", %9lu", stream->second[i]);
-			}
 
-			if (n != num_slices)
+			if (n != num_slices) 
 			{
 				fprintf(stderr, "Warning: stream %s has %lu samples, but there should be %lu\n", stream->first.str().c_str(), n, num_slices);
+
+				while (n++ < num_slices)
+					fprintf(output_file, ", %9d", 0);
 			}
-
-			while (n++ < num_slices)
-				fprintf(output_file, ", %9d", 0);
 			
-
-
 			fprintf(output_file, "\n");
 		}
 	}
