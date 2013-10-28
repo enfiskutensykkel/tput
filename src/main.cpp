@@ -71,6 +71,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 		slice& slice = slices.at(slice_idx);
 		slice.total_bytes += hdr->len;
 		slice.total_pkts += 1;
+		// TODO: packets with payload (need to look at TCP size header field)
 	}
 
 	return slice_idx + 1;
