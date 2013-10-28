@@ -45,30 +45,24 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 
 	uint64_t first = 0;
 	uint64_t slice_idx = 0;
-	uint64_t next;
-
-	uint32_t tcp_off;
-	uint32_t src, dst;
-	uint16_t sport, dport;
 
 	while (!caught_signal && pcap_next_ex(handle, &hdr, &pkt) == 1)
 	{
-		next = usecs(hdr->ts);
+		uint64_t next = usecs(hdr->ts);
 		if (next >= (first + t_slice))
 		{
 			++slice_idx;
 			first = next;
 		}
 
-		tcp_off = (*((uint8_t*) pkt + ETHERNET_FRAME_LEN) & 0x0f) * 4; // IP header size (= offset to IP payload)
-		src = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 12)); // IP source address
-		dst = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 16)); // IP destination address
+		uint32_t tcp_off = (*((uint8_t*) pkt + ETHERNET_FRAME_LEN) & 0x0f) * 4; // IP header size (= offset to IP payload)
+		uint32_t src = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 12)); // IP source address
+		uint32_t dst = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 16)); // IP destination address
 
-		sport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off)); // TCP source port
-		dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
+		uint16_t sport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off)); // TCP source port
+		uint16_t dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
 
-		vector<slice>& slices = lookup_stream_slices(src, dst, sport, dport, slice_idx);
-		slice& slice = slices.at(slice_idx);
+		slice& slice = lookup_stream_slices(src, dst, sport, dport, slice_idx).at(slice_idx);
 		slice.total_bytes += hdr->len;
 		slice.total_pkts += 1;
 		// TODO: packets with payload (need to look at TCP size header field)
