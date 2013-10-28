@@ -33,10 +33,10 @@ struct stream
 };
 
 
-/* Connection map */
+/* Stream to slice map */
 extern std::map<stream, std::vector<uint64_t> > connection_map;
 
-/* Get a connection */
-std::vector<uint64_t>& lookup_stream_samples(uint32_t src_addr, uint32_t dst_addr, uint16_t src_port, uint16_t dst_port, uint64_t expected_samples);
+/* Get a connection's slices */
+std::vector<uint64_t>& lookup_stream_slices(uint32_t src_addr, uint32_t dst_addr, uint16_t src_port, uint16_t dst_port, uint64_t expected_slice_count);
 
 #endif

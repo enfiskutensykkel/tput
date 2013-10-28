@@ -36,12 +36,12 @@ static void signal_handler(int signal)
 
 
 
-uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
+uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 {
 	pcap_pkthdr* hdr;
 	const u_char* pkt;
 
-	const uint64_t t_slice = time_slice * 1000;
+	const uint64_t t_slice = slice_interval * 1000;
 
 	uint64_t first = 0;
 	uint64_t slice = 0;
@@ -67,8 +67,8 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned time_slice)
 		sport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off)); // TCP source port
 		dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
 
-		vector<uint64_t>& samples = lookup_stream_samples(src, dst, sport, dport, slice);
-		samples.at(slice) += hdr->len;
+		vector<uint64_t>& slices = lookup_stream_slices(src, dst, sport, dport, slice);
+		slices.at(slice) += hdr->len;
 	}
 
 	return slice + 1;
@@ -269,8 +269,10 @@ int main(int argc, char** argv)
 	{
 		// Write header row
 		fprintf(output_file, "%48c%9d", ' ', 1);
+
 		for (uint64_t i = 2; i < num_slices; ++i)
 			fprintf(output_file, ", %9lu", i);
+
 		fprintf(output_file, "\n");
 
 		// Write results to CSV file
@@ -284,7 +286,7 @@ int main(int argc, char** argv)
 
 			if (n != num_slices) 
 			{
-				fprintf(stderr, "Warning: stream %s has %lu samples, but there should be %lu\n", stream->first.str().c_str(), n, num_slices);
+				fprintf(stderr, "Warning: stream %s has %lu slices, but there should be %lu\n", stream->first.str().c_str(), n, num_slices);
 
 				while (n++ < num_slices)
 					fprintf(output_file, ", %9d", 0);

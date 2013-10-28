@@ -35,19 +35,19 @@ vector<uint64_t>& lookup_stream(uint32_t src, uint32_t dst, uint16_t sport, uint
 
 
 
-vector<uint64_t>& lookup_stream_samples(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport, uint64_t slices)
+vector<uint64_t>& lookup_stream_slices(uint32_t src, uint32_t dst, uint16_t sport, uint16_t dport, uint64_t curr_slice_idx)
 {
-	vector<uint64_t>& samples = lookup_stream(src, dst, sport, dport);
+	vector<uint64_t>& slices = lookup_stream(src, dst, sport, dport);
 
-	uint64_t size = samples.size();
+	uint64_t count = slices.size();
 
-	while (size <= slices)
+	while (count <= curr_slice_idx)
 	{
-		samples.push_back(0);
-		++size;
+		slices.push_back(0);
+		++count;
 	}
 
-	return samples;
+	return slices;
 }
 
 
