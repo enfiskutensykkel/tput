@@ -68,8 +68,9 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 		dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
 
 		vector<slice>& slices = lookup_stream_slices(src, dst, sport, dport, slice_idx);
-		slices.at(slice_idx).total_bytes += hdr->len;
-		slices.at(slice_idx).total_pkts += 1;
+		slice& slice = slices.at(slice_idx);
+		slice.total_bytes += hdr->len;
+		slice.total_pkts += 1;
 	}
 
 	return slice_idx + 1;
