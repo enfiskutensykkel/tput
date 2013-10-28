@@ -200,7 +200,7 @@ int main(int argc, char** argv)
 						status = 't';
 						goto give_usage;
 					}
-					else if (time_slice > 60)
+					else if (time_slice > 60000)
 					{
 						fprintf(stderr, "Warning: Time slice is set to over one minute\n");
 					}
