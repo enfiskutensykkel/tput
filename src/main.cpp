@@ -293,12 +293,12 @@ int main(int argc, char** argv)
 		fprintf(output_file, "\n");
 
 		// Write results to CSV file
-		for (maptype::iterator stream = connection_map.begin(); stream != connection_map.end(); stream++)
+		for (maptype::iterator stream = connection_map.begin(); !caught_signal && stream != connection_map.end(); stream++)
 		{
 			fprintf(output_file, "%46s", stream->first.str().c_str());
 
 			uint64_t i, n;
-			for (i = 1, n = stream->second.size(); i < n; ++i)
+			for (i = 1, n = stream->second.size(); !caught_signal && i < n; ++i)
 			{
 				if (packet_count)
 					fprintf(output_file, ", %9lu", stream->second[i].total_pkts);
