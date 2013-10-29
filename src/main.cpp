@@ -48,7 +48,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 
 	while (!caught_signal && pcap_next_ex(handle, &hdr, &pkt) == 1)
 	{
-		if (!first)
+		if (first == 0)
 			first = usecs(hdr->ts);
 		else
 		{
@@ -303,7 +303,7 @@ int main(int argc, char** argv)
 			fprintf(output_file, "%46s", stream->first.str().c_str());
 
 			uint64_t i, n;
-			for (i = 1, n = stream->second.size(); !caught_signal && i < n; ++i)
+			for (i = 0, n = stream->second.size(); !caught_signal && i < n; ++i)
 			{
 				if (packet_count)
 					fprintf(output_file, ", %9lu", stream->second[i].total_pkts);
