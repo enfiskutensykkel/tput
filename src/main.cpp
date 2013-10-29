@@ -49,10 +49,10 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 	while (!caught_signal && pcap_next_ex(handle, &hdr, &pkt) == 1)
 	{
 		uint64_t next = usecs(hdr->ts);
-		if (next >= (first + t_slice))
+		while (next >= (first + t_slice))
 		{
 			++slice_idx;
-			first = next;
+			first = first + t_slice;
 		}
 
 		uint32_t tcp_off = (*((uint8_t*) pkt + ETHERNET_FRAME_LEN) & 0x0f) * 4; // IP header size (= offset to IP payload)
