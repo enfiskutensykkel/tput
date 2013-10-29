@@ -15,24 +15,12 @@ using std::string;
 using std::map;
 using std::vector;
 
-
-
+// If SIGINT is caught, this will be set to a value other than 0
 static int caught_signal = 0;
 
 
 
-static void signal_handler(int signal)
-{
-	caught_signal = signal;
-}
-
-
-
 #define usecs(t) (((uint64_t) t.tv_sec) * 1000000 + ((uint64_t) t.tv_usec))
-//static inline uint64_t usecs(struct timeval& t)
-//{
-//	return t.tv_sec * 1000000 + t.tv_usec;
-//}
 
 
 
@@ -48,6 +36,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 
 	while (!caught_signal && pcap_next_ex(handle, &hdr, &pkt) == 1)
 	{
+		// Calculate time slice index
 		if (first == 0)
 			first = usecs(hdr->ts);
 		else
@@ -60,6 +49,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 			}
 		}
 
+		// Calculate offsets within IP packet and TCP segment
 		uint32_t tcp_off = (*((uint8_t*) pkt + ETHERNET_FRAME_LEN) & 0x0f) * 4; // IP header size (= offset to IP payload)
 		uint32_t src = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 12)); // IP source address
 		uint32_t dst = *((uint32_t*) (pkt + ETHERNET_FRAME_LEN + 16)); // IP destination address
@@ -67,6 +57,7 @@ uint64_t calculate_throughput(pcap_t* handle, unsigned slice_interval)
 		uint16_t sport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off)); // TCP source port
 		uint16_t dport = *((uint16_t*) (pkt + ETHERNET_FRAME_LEN + tcp_off + 2)); // TCP destination port
 
+		// Increment byte count and packet count
 		slice& slice = lookup_stream_slices(src, dst, sport, dport, slice_idx).at(slice_idx);
 		slice.total_bytes += hdr->len;
 		slice.total_pkts += 1;
@@ -95,6 +86,13 @@ int set_filter(pcap_t* handle, const filter& options)
 
 	pcap_freecode(&prog_code);
 	return 0;
+}
+
+
+
+static void signal_handler(int signal)
+{
+	caught_signal = signal;
 }
 
 
