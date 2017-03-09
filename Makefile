@@ -18,4 +18,4 @@ clean:
 
 build/%.o: src/%.cpp
 	@mkdir -p build
-	$(CC) -std=gnu++98 -DDEFAULT_TIME_SLICE=30000 -DETHERNET_FRAME_LEN=14 -o $@ -c $(CFLAGS) $<
+	$(CC) -std=gnu++11 -DDEFAULT_TIME_SLICE=100 -DETHERNET_FRAME_LEN=14 -o $@ -c $(CFLAGS) $<
